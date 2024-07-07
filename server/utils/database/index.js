@@ -17,21 +17,41 @@ const schemaQueries = [
   );
   `,
 
+  // // Create the 'job_adverts' table
+  // `
+  // CREATE TABLE IF NOT EXISTS job_adverts (
+  //   id SERIAL PRIMARY KEY,
+  //   job_id INT REFERENCES jobs(job_id),
+  //   advert_details TEXT,
+  //   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  //   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  // );
+  // `,
+
+  // Create the 'candidates' table
+  `
+  CREATE TABLE IF NOT EXISTS candidates (
+    id SERIAL PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    resume BYTEA, -- Storing the file as binary data
+    verified BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+  `,
+
   // Create the 'job_applications' table
   `
-    CREATE TABLE IF NOT EXISTS job_applications (
-        id SERIAL PRIMARY KEY,
-        job_id INT REFERENCES jobs(job_id),
-        full_name VARCHAR(255) NOT NULL,
-        first_name VARCHAR(255) NOT NULL,
-        last_name VARCHAR(255) NOT NULL,
-        phone_number VARCHAR(255) NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        resume BYTEA, 
-        verified BOOLEAN DEFAULT TRUE,
-        application_details TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
+  CREATE TABLE IF NOT EXISTS job_applications (
+    id SERIAL PRIMARY KEY,
+    job_id INT REFERENCES jobs(job_id),
+    candidate_id INT REFERENCES candidates(id),
+    application_details TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
   `,
 ];
 
@@ -50,13 +70,11 @@ async function createSchema() {
     await client.connect();
     console.log(colors.green("Connected to the PostgreSQL database"));
 
-    // Execute all schema creation queries
+    // // Execute all schema creation queries
     for (const query of schemaQueries) {
       await client.query(query);
       console.log("Executed schema query");
     }
-
-    console.log(colors.green("All tables created or already exist"));
   } catch (err) {
     console.error(colors.red("Error creating tables", err.stack));
   }

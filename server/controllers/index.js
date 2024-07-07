@@ -1,6 +1,5 @@
 const express = require("express"); // Import Express framework
 const router = express.Router(); // Create a new Express router
-// const upload = multer();
 
 const jobs = require("../services/jobs/index");
 const applications = require("../services/applications/index");
@@ -17,7 +16,6 @@ router.get("/jobs/indeed.xml", jobs.getIndeedJobs);
 router.post(
   "/applications",
   validateSubmitApplication,
-  //   upload.single('resume'),
   applications.receiveApplication
 );
 

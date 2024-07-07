@@ -11,14 +11,15 @@ const routes = require("./routes");
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
+
 // Initialize the Express server
 const server = express();
 
 // Function to configure middleware and routes
 const create = function () {
   // Middleware to parse JSON and URL-encoded data with increased limits
-  server.use(express.json({ limit: '50mb' }));
-  server.use(express.urlencoded({ extended: true, limit: '50mb' }));
+  server.use(express.json({ limit: "50mb" }));
+  server.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
   // Enable Cross-Origin Resource Sharing (CORS)
   server.use(cors({ origin: "*" }));
@@ -29,27 +30,23 @@ const create = function () {
   // HTTP request logger middleware
   server.use(morgan("dev"));
 
-  console.log({
-    DOMAIN: process.env.DOMAIN,
-    PORT: process.env.PORT,
-  });
-
   // OpenAPI Specification
   const swaggerOptions = {
     definition: {
-      openapi: "3.0.0",
+      openapi: "3.0.3",
       info: {
         title: "Jobs API",
         version: "1.0.0",
-        description: "API for managing jobs",
+        description: "API doc for Integration Engineer role",
       },
       servers: [
         {
           url: `${process.env.DOMAIN}:${process.env.PORT}`,
+          description: "Development server",
         },
       ],
     },
-    apis: ["./routes/*.js"], // Adjust the path to your API docs if needed
+    apis: ["./docs/**/*.js"], // Point to the directory containing documentation files
   };
 
   const specs = swaggerJSDoc(swaggerOptions);

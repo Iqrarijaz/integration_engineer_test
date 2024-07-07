@@ -1,110 +1,77 @@
-// validators/jobValidator.js
-const { checkSchema, validationResult } = require("express-validator");
+const { check, validationResult } = require("express-validator");
 const { client } = require("../utils/database");
 
-const submitApplicationValidatorSchema = checkSchema({
-  job: {
-    in: ["body"],
-    isObject: true,
-    notEmpty: true,
-    errorMessage: "Job object is required",
-    custom: {
-      options: async (value) => {
-        const jobId = value.jobId;
-        const result = await client.query(
-          "SELECT 1 FROM jobs WHERE job_id = $1",
-          [jobId]
-        );
-        if (result.rowCount === 0) {
-          return Promise.reject("Job ID does not exist");
-        }
-        return true;
-      },
-    },
-    jobId: {
-      in: ["body.job"],
-      isInt: true,
-      notEmpty: true,
-      errorMessage: "Job ID is required and must be an integer",
-    },
-  },
-  applicant: {
-    in: ["body"],
-    isObject: true,
-    notEmpty: true,
-    errorMessage: "Applicant object is required",
-    fullName: {
-      in: ["body.applicant"],
-      isString: true,
-      notEmpty: true,
-      errorMessage: "Full Name is required and must be a string",
-      trim: true,
-      isLength: {
-        options: { max: 100 },
-        errorMessage: "Full Name must be at most 100 characters long",
-      },
-    },
-    firstName: {
-      in: ["body.applicant"],
-      isString: true,
-      notEmpty: true,
-      errorMessage: "First Name is required and must be a string",
-      trim: true,
-      isLength: {
-        options: { max: 100 },
-        errorMessage: "First Name must be at most 100 characters long",
-      },
-    },
-    lastName: {
-      in: ["body.applicant"],
-      isString: true,
-      notEmpty: true,
-      errorMessage: "Last Name is required and must be a string",
-      trim: true,
-      isLength: {
-        options: { max: 100 },
-        errorMessage: "Last Name must be at most 100 characters long",
-      },
-    },
-    phoneNumber: {
-      in: ["body.applicant"],
-      isString: true,
-      notEmpty: true,
-      errorMessage: "Phone number is required and must be a string",
-      trim: true,
-      isLength: {
-        options: { max: 13 },
-        errorMessage: "Phone number must be at most 13 characters long",
-      },
-    },
-    email: {
-      in: ["body.applicant"],
-      isEmail: true,
-      isString: true,
-      notEmpty: true,
-      errorMessage: "Email is required and must be a valid email address",
-      trim: true,
-    },
-    resume: {
-      in: ["body.applicant"],
-      isObject: true,
-      notEmpty: true,
-      errorMessage: "Resume is required and must be an object",
-    },
-    verified: {
-      in: ["body.applicant"],
-      isBoolean: true,
-      optional: true,
-      errorMessage: "Verified must be a boolean",
-    },
-    applicationDetails: {
-      in: ["body.applicant"],
-      isString: true,
-      optional: true,
-      errorMessage: "Application details must be a string",
-    },
-  },
-});
+// Custom validation function to check if applicant has already applied three times
+const checkApplicationLimit = async (jobId, email) => {
+  try {
+    const result = await client.query(
+      "SELECT COUNT(*) FROM job_applications WHERE job_id = $1 AND email = $2",
+      [jobId, email]
+    );
+    const count = parseInt(result.rows[0].count, 10);
+    return count < 3; // Return true if less than 3 applications exist
+  } catch (error) {
+    console.error("Error checking application limit:", error);
+    throw new Error("Database error occurred");
+  }
+};
+
+const submitApplicationValidatorSchema = [
+  // Validate request body using express-validator
+  check("job.jobId")
+    .isInt()
+    .withMessage("Job ID is required and must be an integer")
+    .notEmpty()
+    .withMessage("Job ID cannot be empty"),
+
+  check("applicant.fullName")
+    .isString()
+    .withMessage("Full Name is required and must be a string")
+    .notEmpty()
+    .withMessage("Full Name cannot be empty"),
+
+  check("applicant.firstName")
+    .isString()
+    .withMessage("First Name is required and must be a string")
+    .notEmpty()
+    .withMessage("First Name cannot be empty"),
+
+  check("applicant.lastName")
+    .isString()
+    .withMessage("Last Name is required and must be a string")
+    .notEmpty()
+    .withMessage("Last Name cannot be empty"),
+
+  check("applicant.phoneNumber")
+    .isString()
+    .withMessage("Phone number is required and must be a string")
+    .notEmpty()
+    .withMessage("Phone number cannot be empty"),
+
+  check("applicant.email")
+    .isEmail()
+    .withMessage("Email is required and must be a valid email address")
+    .isString()
+    .withMessage("Email must be a string")
+    .notEmpty()
+    .withMessage("Email cannot be empty"),
+
+  check("applicant.resume")
+    .isObject()
+    .withMessage("Resume is required and must be an object")
+    .notEmpty()
+    .withMessage("Resume cannot be empty"),
+
+  check("applicant.verified")
+    .optional()
+    .isBoolean()
+    .withMessage("Verified must be a boolean"),
+
+  check("applicant.applicationDetails")
+    .optional()
+    .isString()
+    .withMessage("Application details must be a string"),
+];
 
 const validateSubmitApplication = [
   submitApplicationValidatorSchema,

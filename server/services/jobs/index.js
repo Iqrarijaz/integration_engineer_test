@@ -1,38 +1,6 @@
 const { client } = require("../../utils/database");
 
 // Create a new job posting
-/**
- * @openapi
- * /jobs:
- *   post:
- *     summary: Create a new job posting
- *     tags:
- *       - Jobs
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *                 example: "Software Engineer"
- *               description:
- *                 type: string
- *                 example: "Develop and maintain software solutions."
- *               company:
- *                 type: string
- *                 example: "Tech Company"
- *               location:
- *                 type: string
- *                 example: "New York"
- *     responses:
- *       201:
- *         description: Job created successfully
- *       400:
- *         description: Bad request
- */
 
 async function createJob(req, res) {
   const { title, description, company_name, location } = req.body;
@@ -82,30 +50,6 @@ async function createJob(req, res) {
 }
 
 // Retrieve all active jobs with pagination
-/**
- * @openapi
- * /jobs:
- *   get:
- *     summary: Retrieve all active jobs
- *     tags:
- *       - Jobs
- *     parameters:
- *       - name: page
- *         in: query
- *         description: Page number for pagination
- *         schema:
- *           type: integer
- *           example: 1
- *       - name: limit
- *         in: query
- *         description: Number of jobs per page
- *         schema:
- *           type: integer
- *           example: 10
- *     responses:
- *       200:
- *         description: List of active jobs
- */
 
 async function listJobs(req, res) {
   try {
@@ -155,17 +99,7 @@ async function listJobs(req, res) {
 }
 
 // GET /jobs/indeed.xml - Retrieve all active jobs in XML format
-/**
- * @swagger
- * /jobs/indeed.xml:
- *   get:
- *     summary: Retrieve all active jobs in XML format
- *     responses:
- *       200:
- *         description: List of active jobs in XML format
- *       500:
- *         description: Internal Server Error
- */
+
 async function getIndeedJobs(req, res) {
   try {
     const result = await client.query(

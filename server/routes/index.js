@@ -1,6 +1,6 @@
 "use strict";
 const apiRoute = require("../controllers/index");
-
+const path = require("path");
 function init(server) {
   // Normalize query parameters and request body keys to lower case
   server.use((req, res, next) => {
@@ -12,8 +12,6 @@ function init(server) {
     }
     next();
   });
-
-
 
   // Set headers for CORS
   server.use((req, res, next) => {
@@ -31,26 +29,112 @@ function init(server) {
 
   // Root route
   server.get("/", (req, res) => {
-    res.send("<--- Integration Engineer Test Server --------->");
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Integration Engineer Test Server</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+          }
+          .container {
+            text-align: center;
+          }
+          h1 {
+            margin-bottom: 20px;
+          }
+          button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+          }
+          button:hover {
+            background-color: #0056b3;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Integration Engineer Test Server</h1>
+          <a href="${process.env.DOMAIN}:${process.env.PORT}/api-docs" target="_blank">
+            <button>Go to API Documentation</button>
+          </a>
+        </div>
+      </body>
+      </html>
+    `);
   });
 
   // API route
   server.use(apiRoute);
 
-  // Handle 404 - Route not found
+  // 404 Not Found route
   server.use((req, res) => {
-     res.status(404).json({
-      result: null,
-      meta: null,
-      errors: [
-        {
-          code: 404,
-          name: "NotFound",
-          message: "The requested resource was not found.",
-          details: null,
-        },
-      ],
-    });
+    res.status(404).send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Page Not Found</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          margin: 0;
+          background-color: #f0f0f0;
+        }
+        .container {
+          text-align: center;
+        }
+        h1 {
+          margin-bottom: 20px;
+          color: #dc3545;
+        }
+        p {
+          font-size: 18px;
+          color: #333;
+        }
+        a {
+          padding: 10px 20px;
+          font-size: 16px;
+          color: #fff;
+          background-color: #007bff;
+          text-decoration: none;
+          border-radius: 5px;
+        }
+        a:hover {
+          background-color: #0056b3;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>404 - Page Not Found</h1>
+        <p>The page you are looking for does not exist.</p>
+        <a href="${process.env.DOMAIN}:${process.env.PORT}/" target="_self">Go Back to Home</a>
+      </div>
+    </body>
+    </html>
+  `);
   });
 }
 
