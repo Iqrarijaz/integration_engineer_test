@@ -11,7 +11,6 @@ const routes = require("./routes");
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
-
 // Initialize the Express server
 const server = express();
 
@@ -35,9 +34,8 @@ const create = function () {
     definition: {
       openapi: "3.0.3",
       info: {
-        title: "Jobs API",
+        title: "Integration Engineer Test",
         version: "1.0.0",
-        description: "API doc for Integration Engineer role",
       },
       servers: [
         {

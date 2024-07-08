@@ -1,27 +1,43 @@
 const { client } = require("../../utils/database");
+const uniqueKey = require("unique-key");
 
 // Create a new job posting
 
 async function createJob(req, res) {
-  const { title, description, company_name, location } = req.body;
+  const {
+    title,
+    description,
+    company_name,
+    location,
+    salary,
+    url,
+    contact_email,
+  } = req.body;
 
   try {
+    // Generate a unique reference number
+    const reference_number = uniqueKey(32, "pk-");
+
     // Calculate the expiry date (30 days from now)
     const expiry_date = new Date();
     expiry_date.setDate(expiry_date.getDate() + 30);
 
     // Define the query and values
     const query = `
-      INSERT INTO jobs (title, description, company_name, location, expiry_date)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO jobs (reference_number, contact_email, title, description, company_name, location, expiry_date, salary, url)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING job_id, title, description, company_name, location, created_at, expiry_date
     `;
     const values = [
+      reference_number,
+      contact_email,
       title,
       description,
       company_name,
       location,
       expiry_date.toISOString(),
+      salary,
+      url,
     ];
 
     // Execute the query
@@ -34,15 +50,16 @@ async function createJob(req, res) {
       result: result.rows[0],
     });
   } catch (error) {
+    console.error("Error creating job:", error); // Log the error for debugging
+
     res.status(500).json({
-      result: null,
-      meta: {},
+      success: false,
+      message: "Internal Server Error",
       errors: [
         {
           code: 500,
           name: "Internal Server Error",
           message: error.message,
-          details: error,
         },
       ],
     });

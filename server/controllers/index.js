@@ -3,8 +3,10 @@ const router = express.Router(); // Create a new Express router
 
 const jobs = require("../services/jobs/index");
 const applications = require("../services/applications/index");
+const adverts = require("../services/adverts/index");
 const { validateCreateJob } = require("../dataSanitizer/jobs");
 const { validateSubmitApplication } = require("../dataSanitizer/application");
+const { validateCreateAdvertisement } = require("../dataSanitizer/adverts");
 
 // Define routes for jobs
 router.post("/jobs", validateCreateJob, jobs.createJob);
@@ -18,6 +20,12 @@ router.post(
   validateSubmitApplication,
   applications.receiveApplication
 );
+
+// Define route for jobs adverts
+router.post("/adverts", validateCreateAdvertisement, adverts.createAdvert);
+
+// Define route for job adverts list
+router.get("/adverts", adverts.listAdverts);
 
 // Export the router
 module.exports = router;

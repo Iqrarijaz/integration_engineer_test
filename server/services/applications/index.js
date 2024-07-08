@@ -8,7 +8,7 @@ async function receiveApplication(req, res) {
 
     // Extract data from the request body
     const {
-      job: { jobId },
+      job: { jobId }, // Extract job ID from request body
       applicant: {
         fullName,
         firstName,
@@ -52,7 +52,7 @@ async function receiveApplication(req, res) {
     const applicationValues = [
       jobId,
       candidateId,
-      "Application received from Indeed's testing tool", // Example application details
+      "Application received from Indeed's testing tool", 
     ];
 
     const applicationResult = await client.query(

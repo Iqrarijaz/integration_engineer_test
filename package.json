@@ -20,6 +20,8 @@
     "pg": "^8.12.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "unique-key": "^0.0.6",
+    "vitest": "^1.6.0",
     "yamljs": "^0.3.0"
   }
 }

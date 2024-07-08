@@ -9,6 +9,7 @@
  *     operationId: createJob
  *     requestBody:
  *       description: Job object that needs to be added to the database.
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -30,6 +31,18 @@
  *                 type: string
  *                 example: New York, NY
  *                 description: The location where the job is based.
+ *               salary:
+ *                 type: string
+ *                 example: 120000
+ *                 description: The salary for the job.
+ *               url:
+ *                 type: string
+ *                 example: "https://www.techcorp.com/jobs/software-engineer"
+ *                 description: The URL for the job listing.
+ *               contact_email:
+ *                 type: string
+ *                 example: hr@techcorp.com
+ *                 description: The contact email for the job application.
  *             required:
  *               - title
  *               - description

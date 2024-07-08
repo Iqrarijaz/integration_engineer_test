@@ -1,37 +1,65 @@
 const { check, validationResult } = require("express-validator");
 
-// Validator for creating a new job
+// Validator schema for creating a new job
 const createJobValidatorSchema = [
+  // Title validation
   check("title")
-    .isString()
-    .withMessage("Title is required and must be a string")
-    .notEmpty()
-    .withMessage("Title cannot be empty")
     .trim()
+    .notEmpty()
+    .withMessage("Title is required and cannot be empty")
+    .isString()
+    .withMessage("Title must be a string")
     .isLength({ max: 100 })
     .withMessage("Title must be at most 100 characters long"),
 
+  // Description validation
   check("description")
-    .isString()
-    .withMessage("Description is required and must be a string")
-    .notEmpty()
-    .withMessage("Description cannot be empty")
-    .trim(),
-
-  check("company_name")
-    .isString()
-    .withMessage("Company name is required and must be a string")
-    .notEmpty()
-    .withMessage("Company name cannot be empty")
     .trim()
+    .notEmpty()
+    .withMessage("Description is required and cannot be empty")
+    .isString()
+    .withMessage("Description must be a string"),
+
+  // Salary validation
+  check("salary")
+    .trim()
+    .notEmpty()
+    .withMessage("Salary is required and cannot be empty")
+    .isString()
+    .withMessage("Salary must be a string"),
+
+  // URL validation
+  check("url")
+    .trim()
+    .notEmpty()
+    .withMessage("URL is required and cannot be empty")
+    .isURL()
+    .withMessage("URL must be a valid URL"),
+
+  // Contact email validation
+  check("contact_email")
+    .trim()
+    .notEmpty()
+    .withMessage("Contact email is required and cannot be empty")
+    .isEmail()
+    .withMessage("Contact email must be a valid email address"),
+
+  // Company name validation
+  check("company_name")
+    .trim()
+    .notEmpty()
+    .withMessage("Company name is required and cannot be empty")
+    .isString()
+    .withMessage("Company name must be a string")
     .isLength({ max: 100 })
     .withMessage("Company name must be at most 100 characters long"),
 
+  // Location validation (optional)
   check("location")
     .optional()
+    .trim()
     .isString()
     .withMessage("Location must be a string")
-    .trim()
     .isLength({ max: 100 })
     .withMessage("Location must be at most 100 characters long"),
 ];
