@@ -1,17 +1,39 @@
 const { check, validationResult } = require("express-validator");
 const { client } = require("../utils/database");
 
-// Custom validation function to check if applicant has already applied three times
-const checkApplicationLimit = async (jobId, email) => {
+// Custom validation function to check if the job exists and is not expired
+const checkJobExistsAndNotExpired = async (jobId) => {
   try {
     const result = await client.query(
-      "SELECT COUNT(*) FROM job_applications WHERE job_id = $1 AND email = $2",
+      "SELECT expiry_date FROM jobs WHERE job_id = $1",
+      [jobId]
+    );
+    if (result.rows.length === 0) {
+      return { exists: false }; // Job does not exist
+    }
+    const expiryDate = new Date(result.rows[0].expiry_date);
+    const currentDate = new Date();
+    if (expiryDate < currentDate) {
+      return { exists: true, expired: true }; // Job is expired
+    }
+    return { exists: true, expired: false }; // Job exists and is not expired
+  } catch (error) {
+    console.error("Error checking job existence and expiry:", error);
+    throw new Error("Database error occurred");
+  }
+};
+
+// Custom validation function to check for duplicate applications
+const checkDuplicateApplication = async (jobId, email) => {
+  try {
+    const result = await client.query(
+      "SELECT COUNT(*) FROM job_applications WHERE job_id = $1 AND candidate_email = $2",
       [jobId, email]
     );
     const count = parseInt(result.rows[0].count, 10);
-    return count < 3; // Return true if less than 3 applications exist
+    return count > 0; // Return true if a duplicate application exists
   } catch (error) {
-    console.error("Error checking application limit:", error);
+    console.error("Error checking duplicate application:", error);
     throw new Error("Database error occurred");
   }
 };
@@ -22,7 +44,30 @@ const submitApplicationValidatorSchema = [
     .isInt()
     .withMessage("Job ID is required and must be an integer")
     .notEmpty()
-    .withMessage("Job ID cannot be empty"),
+    .withMessage("Job ID cannot be empty")
+    .custom(async (value, { req }) => {
+      const jobStatus = await checkJobExistsAndNotExpired(value);
+      if (!jobStatus.exists) {
+        throw new Error("Job is invalid, does not exist");
+      }
+      if (jobStatus.expired) {
+        throw new Error("The job is expired or no longer available");
+      }
+
+      const duplicateApplication = await checkDuplicateApplication(
+        value,
+        req.body.applicant.email
+      );
+      if (duplicateApplication) {
+        throw new Error("Duplicate Application already in the system");
+      }
+    }),
+
+  check("id")
+    .isString()
+    .withMessage("Indeed ID is required and must be a string")
+    .notEmpty()
+    .withMessage("Indeed ID cannot be empty"),
 
   check("applicant.fullName")
     .isString()
@@ -75,10 +120,41 @@ const submitApplicationValidatorSchema = [
 
 const validateSubmitApplication = [
   submitApplicationValidatorSchema,
-  (req, res, next) => {
+  async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      const errorArray = errors.array();
+      const jobError = errorArray.find(
+        (err) => err.msg === "Job is invalid, does not exist"
+      );
+      if (jobError) {
+        return res.status(404).json({
+          message: "Job is invalid, does not exist",
+          errors: errorArray,
+        });
+      }
+      const expiredError = errorArray.find(
+        (err) => err.msg === "The job is expired or no longer available"
+      );
+      if (expiredError) {
+        return res.status(410).json({
+          message: "The job is expired or no longer available",
+          errors: errorArray,
+        });
+      }
+      const duplicateError = errorArray.find(
+        (err) => err.msg === "Duplicate Application already in the system"
+      );
+      if (duplicateError) {
+        return res.status(409).json({
+          message: "Duplicate Application already in the system",
+          errors: errorArray,
+        });
+      }
+      return res.status(400).json({
+        message: "JSON payload is missing a required key",
+        errors: errorArray,
+      });
     }
     next();
   },

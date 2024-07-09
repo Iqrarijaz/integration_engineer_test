@@ -1,8 +1,7 @@
 const { client } = require("../../utils/database");
 const uniqueKey = require("unique-key");
 
-// Create a new job posting
-
+// POST /jobs - Create a new job posting
 async function createJob(req, res) {
   const {
     title,
@@ -66,8 +65,7 @@ async function createJob(req, res) {
   }
 }
 
-// Retrieve all active jobs with pagination
-
+// GET /jobs - Retrieve all active jobs with pagination
 async function listJobs(req, res) {
   try {
     const { page = 1, limit = 10 } = req.query;
@@ -92,10 +90,21 @@ async function listJobs(req, res) {
       )
     ).rows[0].count;
 
+    // Calculate total pages
+    const totalPages = Math.ceil(total / limitNumber);
+
     // Send the response
     return res.json({
       result: result.rows,
-      meta: { total, page: pageNumber, limit: limitNumber },
+      pagination: {
+        page: pageNumber,
+        limit: limitNumber,
+        total_count: parseInt(total, 10),
+        total_pages: totalPages,
+      },
+      meta: {
+        message: "Jobs retrieved successfully",
+      },
       errors: [],
     });
   } catch (error) {
@@ -116,22 +125,48 @@ async function listJobs(req, res) {
 }
 
 // GET /jobs/indeed.xml - Retrieve all active jobs in XML format
-
 async function getIndeedJobs(req, res) {
   try {
     const result = await client.query(
       "SELECT * FROM jobs WHERE expiry_date > CURRENT_DATE ORDER BY created_at DESC"
     );
-    let xml =
-      '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0">\n<channel>\n';
+
+    let xml = `<?xml version="1.0" encoding="utf-8"?>\n<source>\n`;
+    xml += `  <publisher>Creative Agency</publisher>\n`; // Example ATS Name
+    xml += `  <publisherurl>https://www.creativeagency.com</publisherurl>\n`; // Example ATS URL
+
     result.rows.forEach((job) => {
-      xml += `<item>\n<title>${job.title}</title>\n<description>${
-        job.description
-      }</description>\n<pubDate>${new Date(
+      xml += `  <job>\n`;
+      xml += `    <title><![CDATA[${job.title}]]></title>\n`;
+      xml += `    <date><![CDATA[${new Date(
         job.created_at
-      ).toUTCString()}</pubDate>\n</item>\n`;
+      ).toISOString()}]]></date>\n`;
+      xml += `    <referencenumber><![CDATA[${job.reference_number}]]></referencenumber>\n`;
+      xml += `    <requisitionid><![CDATA[${job.job_id}]]></requisitionid>\n`;
+      xml += `    <url><![CDATA[${job.url}]]></url>\n`;
+      xml += `    <company><![CDATA[${job.company_name}]]></company>\n`;
+      xml += `    <sourcename><![CDATA[Creative Agency]]></sourcename>\n`; // Example Source Name
+      xml += `    <city><![CDATA[${job.location
+        .split(",")[0]
+        .trim()}]]></city>\n`;
+      xml += `    <state><![CDATA[${
+        job.location.split(",")[1]?.trim() || ""
+      }]]></state>\n`;
+      xml += `    <streetaddress><![CDATA[${job.location.replace(
+        ",",
+        " "
+      )}]]></streetaddress>\n`;
+      xml += `    <email><![CDATA[${job.contact_email}]]></email>\n`;
+      xml += `    <description><![CDATA[${job.description}]]></description>\n`;
+      xml += `    <salary><![CDATA[${job.salary}]]></salary>\n`;
+      xml += `    <expirationdate><![CDATA[${
+        new Date(job.expiry_date).toISOString().split("T")[0]
+      }]]></expirationdate>\n`;
+      xml += `  </job>\n`;
     });
-    xml += "</channel>\n</rss>";
+
+    xml += `</source>`;
+
     res.header("Content-Type", "application/xml").send(xml);
   } catch (error) {
     res.status(500).json({

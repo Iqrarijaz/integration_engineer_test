@@ -21,6 +21,8 @@ router.post(
   applications.receiveApplication
 );
 
+router.get("/applications", applications.listApplications);
+
 // Define route for jobs adverts
 router.post("/adverts", validateCreateAdvertisement, adverts.createAdvert);
 

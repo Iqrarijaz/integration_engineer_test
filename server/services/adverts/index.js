@@ -124,14 +124,12 @@ async function listAdverts(req, res) {
 
     // Send the response
     return res.json({
-      result: {
-        adverts: result.rows,
-        pagination: {
-          page: pageNumber,
-          limit: limitNumber,
-          total_count: parseInt(total, 10),
-          total_pages: totalPages,
-        },
+      result: result.rows,
+      pagination: {
+        page: pageNumber,
+        limit: limitNumber,
+        total_count: parseInt(total, 10),
+        total_pages: totalPages,
       },
       meta: {
         message: "Adverts retrieved successfully",

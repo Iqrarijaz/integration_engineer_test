@@ -1,92 +1,90 @@
 /**
  * @swagger
- * /job-adverts:
+ * /adverts:
  *   get:
  *     tags:
- *       - Job Adverts
- *     summary: List all job adverts with pagination
- *     description: Retrieve a paginated list of job adverts from the database.
+ *       - Adverts
+ *     summary: List job adverts with pagination
+ *     description: Retrieve a paginated list of job adverts.
  *     operationId: listAdverts
  *     parameters:
  *       - name: page
  *         in: query
- *         description: Page number for pagination (starting from 1).
+ *         description: The page number to retrieve.
  *         required: false
  *         schema:
  *           type: integer
+ *           default: 1
  *           example: 1
  *       - name: limit
  *         in: query
- *         description: Number of adverts per page.
+ *         description: The number of job adverts to retrieve per page.
  *         required: false
  *         schema:
  *           type: integer
+ *           default: 10
  *           example: 10
  *     responses:
  *       '200':
- *         description: Successfully retrieved the list of job adverts.
+ *         description: Adverts retrieved successfully.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
  *                 result:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                         description: The unique identifier for the job advert.
+ *                       job_id:
+ *                         type: integer
+ *                         example: 100
+ *                         description: The unique identifier for the job.
+ *                       platform:
+ *                         type: string
+ *                         example: Indeed
+ *                         description: The platform where the advert is published.
+ *                       advert_title:
+ *                         type: string
+ *                         example: Software Engineer
+ *                         description: The title of the advert.
+ *                       advert_url:
+ *                         type: string
+ *                         example: "https://www.indeed.com/job/software-engineer"
+ *                         description: The URL for the advert.
+ *                       advert_details:
+ *                         type: string
+ *                         example: "Detailed job advert information."
+ *                         description: Detailed information about the advert.
+ *                       published_at:
+ *                         type: string
+ *                         format: date-time
+ *                         example: '2024-07-07T12:34:56Z'
+ *                         description: The date and time when the advert was published.
+ *                 pagination:
  *                   type: object
  *                   properties:
- *                     adverts:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           id:
- *                             type: integer
- *                             example: 1
- *                             description: The unique identifier for the job advert.
- *                           job_id:
- *                             type: integer
- *                             example: 1
- *                             description: The ID of the job associated with the advert.
- *                           platform:
- *                             type: string
- *                             example: Glassdoor
- *                             description: The platform where the job advert was published.
- *                           advert_title:
- *                             type: string
- *                             example: Senior Backend Developer at Tech Innovations Inc.
- *                             description: The title of the job advert.
- *                           advert_url:
- *                             type: string
- *                             format: uri
- *                             example: https://www.techinnovations.com/careers/senior-backend-developer
- *                             description: The URL where the job advert can be found.
- *                           advert_details:
- *                             type: string
- *                             example: We are looking for a skilled Senior Backend Developer to join our team at Tech Innovations Inc. The ideal candidate should have experience in building scalable applications. Apply now!
- *                             description: Additional details about the job advert.
- *                           published_at:
- *                             type: string
- *                             format: date-time
- *                             example: 2024-07-09T12:00:00Z
- *                             description: The date and time when the job advert was published.
- *                     pagination:
- *                       type: object
- *                       properties:
- *                         page:
- *                           type: integer
- *                           example: 1
- *                           description: Current page number.
- *                         limit:
- *                           type: integer
- *                           example: 10
- *                           description: Number of adverts per page.
- *                         total_count:
- *                           type: integer
- *                           example: 25
- *                           description: Total number of adverts available.
- *                         total_pages:
- *                           type: integer
- *                           example: 3
- *                           description: Total number of pages available based on the limit.
+ *                     page:
+ *                       type: integer
+ *                       example: 1
+ *                       description: The current page number.
+ *                     limit:
+ *                       type: integer
+ *                       example: 10
+ *                       description: The number of adverts per page.
+ *                     total_count:
+ *                       type: integer
+ *                       example: 100
+ *                       description: The total number of adverts.
+ *                     total_pages:
+ *                       type: integer
+ *                       example: 10
+ *                       description: The total number of pages.
  *                 meta:
  *                   type: object
  *                   properties:
@@ -104,13 +102,10 @@
  *                         example: 500
  *                       name:
  *                         type: string
- *                         example: InternalServerError
+ *                         example: Internal Server Error
  *                       message:
  *                         type: string
- *                         example: An error occurred while retrieving the adverts.
- *                       details:
- *                         type: string
- *                         example: Detailed error information.
+ *                         example: An error occurred while retrieving adverts.
  *       '500':
  *         description: Internal Server Error.
  *         content:
@@ -121,9 +116,11 @@
  *                 result:
  *                   type: object
  *                   example: null
+ *                   description: No result due to an error.
  *                 meta:
  *                   type: object
  *                   example: {}
+ *                   description: Empty metadata due to an error.
  *                 errors:
  *                   type: array
  *                   items:
@@ -134,39 +131,12 @@
  *                         example: 500
  *                       name:
  *                         type: string
- *                         example: InternalServerError
+ *                         example: Internal Server Error
  *                       message:
  *                         type: string
- *                         example: An error occurred while retrieving the adverts.
+ *                         example: An error occurred while retrieving adverts.
  *                       details:
  *                         type: string
  *                         example: Detailed error information.
- *     security:
- *       - BearerAuth: []
- *     servers:
- *       - url: http://localhost:3020
- *         description: Local server
- * components:
- *   securitySchemes:
- *     BearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
- *   schemas:
- *     Pagination:
- *       type: object
- *       properties:
- *         page:
- *           type: integer
- *           description: Current page number.
- *         limit:
- *           type: integer
- *           description: Number of adverts per page.
- *         total_count:
- *           type: integer
- *           description: Total number of adverts available.
- *         total_pages:
- *           type: integer
- *           description: Total number of pages available.
  */
 module.exports = {};

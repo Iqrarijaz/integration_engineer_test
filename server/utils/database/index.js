@@ -23,20 +23,49 @@ const schemaQueries = [
 
   // Create the 'job adverts' table
   `
-CREATE TABLE IF NOT EXISTS job_adverts (
-  id SERIAL PRIMARY KEY,  
-  job_id INT REFERENCES jobs(job_id),  
-  platform VARCHAR(100) NOT NULL,  
-  advert_title VARCHAR(255) NOT NULL,  
-  advert_url VARCHAR(255) NOT NULL,  
-  advert_details TEXT,  
-  published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  
-  UNIQUE(job_id, platform)  
-);
+  CREATE TABLE IF NOT EXISTS job_adverts (
+    id SERIAL PRIMARY KEY,  
+    job_id INT REFERENCES jobs(job_id),  
+    platform VARCHAR(100) NOT NULL,  
+    advert_title VARCHAR(255) NOT NULL,  
+    advert_url VARCHAR(255) NOT NULL,  
+    advert_details TEXT,  
+    published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  
+    UNIQUE(job_id, platform)  
+  );
+  `,
 
-`,
+  // Create the 'candidates' table
+  `
+  CREATE TABLE IF NOT EXISTS candidates (
+    id SERIAL PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL ,
+    resume BYTEA, -- Storing the file as binary data
+    verified BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+  `,
+
   // Create the 'job_applications' table
+  `
+  CREATE TABLE IF NOT EXISTS job_applications (
+    id SERIAL PRIMARY KEY,
+    indeed_id VARCHAR(255) UNIQUE NOT NULL,
+    job_id INT REFERENCES jobs(job_id),
+    candidate_id INT REFERENCES candidates(id),
+    candidate_email VARCHAR(255) NOT NULL,
+    application_details TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+  `,
 ];
+
+module.exports = schemaQueries;
+
 
 const databaseConfig = {
   host: process.env.HOST,
@@ -101,8 +130,27 @@ async function createSchema() {
   }
 }
 
+async function dropDatabase() {
+  try {
+    // Connect to the PostgreSQL server (not the target database)
+    await initialClient.connect();
+    console.log(colors.green("Connected to the PostgreSQL server"));
+
+    // Drop the database
+    const dbName = process.env.DATABASE_NAME;
+    await initialClient.query(`DROP DATABASE IF EXISTS "${dbName}"`);
+    console.log(colors.green(`Database '${dbName}' dropped successfully`));
+
+    // Close the initial connection
+    await initialClient.end();
+  } catch (err) {
+    console.error(colors.red("Error dropping database", err.stack));
+  }
+}
+
 // Run the schema creation function
 async function initializeDatabase() {
+  // await dropDatabase();
   await createDatabaseIfNotExists();
   await createSchema();
 }

@@ -1,9 +1,9 @@
 /**
  * @swagger
- * /job-adverts:
+ * /adverts:
  *   post:
  *     tags:
- *       - Job Adverts
+ *       - Adverts
  *     summary: Create a new job advert
  *     description: This endpoint allows you to create a new job advert associated with a specific job on a specified platform.
  *     operationId: createAdvert

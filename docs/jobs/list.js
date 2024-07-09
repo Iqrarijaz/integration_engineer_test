@@ -4,25 +4,29 @@
  *   get:
  *     tags:
  *       - Jobs
- *     summary: List all active jobs with pagination
- *     description: Retrieve a paginated list of all active jobs. The jobs are ordered by creation date in descending order.
+ *     summary: List active jobs with pagination
+ *     description: Retrieve a paginated list of active jobs.
  *     operationId: listJobs
  *     parameters:
- *       - in: query
- *         name: page
+ *       - name: page
+ *         in: query
+ *         description: The page number to retrieve.
+ *         required: false
  *         schema:
  *           type: integer
+ *           default: 1
  *           example: 1
- *         description: The page number to retrieve (1-based index).
- *       - in: query
- *         name: limit
+ *       - name: limit
+ *         in: query
+ *         description: The number of jobs to retrieve per page.
+ *         required: false
  *         schema:
  *           type: integer
+ *           default: 10
  *           example: 10
- *         description: The number of jobs to return per page.
  *     responses:
  *       '200':
- *         description: A paginated list of active jobs.
+ *         description: Jobs retrieved successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -37,6 +41,10 @@
  *                         type: integer
  *                         example: 1
  *                         description: The unique identifier for the job.
+ *                       reference_number:
+ *                         type: string
+ *                         example: pk-abcdefgh12345678
+ *                         description: The reference number for the job.
  *                       title:
  *                         type: string
  *                         example: Software Engineer
@@ -53,6 +61,18 @@
  *                         type: string
  *                         example: New York, NY
  *                         description: The location where the job is based.
+ *                       salary:
+ *                         type: string
+ *                         example: 120000
+ *                         description: The salary for the job.
+ *                       url:
+ *                         type: string
+ *                         example: "https://www.techcorp.com/jobs/software-engineer"
+ *                         description: The URL for the job listing.
+ *                       contact_email:
+ *                         type: string
+ *                         example: hr@techcorp.com
+ *                         description: The contact email for the job application.
  *                       created_at:
  *                         type: string
  *                         format: date-time
@@ -63,13 +83,9 @@
  *                         format: date-time
  *                         example: '2024-08-06T00:00:00Z'
  *                         description: The date and time when the job listing will expire.
- *                 meta:
+ *                 pagination:
  *                   type: object
  *                   properties:
- *                     total:
- *                       type: integer
- *                       example: 100
- *                       description: The total number of active jobs available.
  *                     page:
  *                       type: integer
  *                       example: 1
@@ -77,7 +93,22 @@
  *                     limit:
  *                       type: integer
  *                       example: 10
- *                       description: The number of jobs returned per page.
+ *                       description: The number of jobs per page.
+ *                     total_count:
+ *                       type: integer
+ *                       example: 100
+ *                       description: The total number of jobs.
+ *                     total_pages:
+ *                       type: integer
+ *                       example: 10
+ *                       description: The total number of pages.
+ *                 meta:
+ *                   type: object
+ *                   properties:
+ *                     message:
+ *                       type: string
+ *                       example: Jobs retrieved successfully
+ *                       description: A message indicating the result of the request.
  *                 errors:
  *                   type: array
  *                   items:
@@ -92,9 +123,6 @@
  *                       message:
  *                         type: string
  *                         example: An error occurred while retrieving jobs.
- *                       details:
- *                         type: string
- *                         example: Detailed error information.
  *       '500':
  *         description: Internal Server Error.
  *         content:
@@ -104,10 +132,12 @@
  *               properties:
  *                 result:
  *                   type: object
- *                   nullable: true
+ *                   example: null
+ *                   description: No result due to an error.
  *                 meta:
  *                   type: object
- *                   properties: {}
+ *                   example: {}
+ *                   description: Empty metadata due to an error.
  *                 errors:
  *                   type: array
  *                   items:
