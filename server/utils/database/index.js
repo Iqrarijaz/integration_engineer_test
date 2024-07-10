@@ -44,7 +44,6 @@ const schemaQueries = [
     last_name VARCHAR(255) NOT NULL,
     phone_number VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL ,
-    resume BYTEA, -- Storing the file as binary data
     verified BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
@@ -54,17 +53,16 @@ const schemaQueries = [
   `
   CREATE TABLE IF NOT EXISTS job_applications (
     id SERIAL PRIMARY KEY,
-    indeed_id VARCHAR(255) UNIQUE NOT NULL,
     job_id INT REFERENCES jobs(job_id),
     candidate_id INT REFERENCES candidates(id),
-    candidate_email VARCHAR(255) NOT NULL,
+    resume BYTEA, 
     application_details TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
   `,
+
 ];
 
-module.exports = schemaQueries;
 
 
 const databaseConfig = {

@@ -24,19 +24,6 @@ const checkJobExistsAndNotExpired = async (jobId) => {
 };
 
 // Custom validation function to check for duplicate applications
-const checkDuplicateApplication = async (jobId, email) => {
-  try {
-    const result = await client.query(
-      "SELECT COUNT(*) FROM job_applications WHERE job_id = $1 AND candidate_email = $2",
-      [jobId, email]
-    );
-    const count = parseInt(result.rows[0].count, 10);
-    return count > 0; // Return true if a duplicate application exists
-  } catch (error) {
-    console.error("Error checking duplicate application:", error);
-    throw new Error("Database error occurred");
-  }
-};
 
 const submitApplicationValidatorSchema = [
   // Validate request body using express-validator
@@ -52,14 +39,6 @@ const submitApplicationValidatorSchema = [
       }
       if (jobStatus.expired) {
         throw new Error("The job is expired or no longer available");
-      }
-
-      const duplicateApplication = await checkDuplicateApplication(
-        value,
-        req.body.applicant.email
-      );
-      if (duplicateApplication) {
-        throw new Error("Duplicate Application already in the system");
       }
     }),
 

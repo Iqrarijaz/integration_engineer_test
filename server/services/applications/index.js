@@ -7,9 +7,10 @@ async function receiveApplication(req, res) {
     const data = req.body;
     console.log(data);
 
+    // Destructure relevant data from the request body
     const {
       id,
-      job: { jobId }, // Extract job ID from request body
+      job: { jobId },
       applicant: {
         fullName,
         firstName,
@@ -21,61 +22,113 @@ async function receiveApplication(req, res) {
       },
     } = data;
 
-    // Ensure resume is a buffer
+    // Convert resume base64 string to buffer
     const resumeBuffer = Buffer.from(resume?.file?.data, "base64");
 
-    // Define query for inserting data into candidates table
-    const candidateQuery = `
-      INSERT INTO candidates (full_name, first_name, last_name, phone_number, email, resume ,verified)
-      VALUES ($1, $2, $3, $4, $5, $6 , $7 ) RETURNING id;
+    // Check if the candidate already exists in the database
+    const checkCandidateQuery = `
+      SELECT id
+      FROM candidates
+      WHERE email = $1
     `;
+    const checkCandidateResult = await client.query(checkCandidateQuery, [
+      email,
+    ]);
 
-    // Insert candidate data
+    if (checkCandidateResult.rows.length > 0) {
+      const candidateId = checkCandidateResult.rows[0].id;
+
+      // Check if the application already exists for this job and candidate
+      const checkApplicationQuery = `
+        SELECT id
+        FROM job_applications
+        WHERE job_id = $1 AND candidate_id = $2
+      `;
+      const checkApplicationResult = await client.query(checkApplicationQuery, [
+        jobId,
+        candidateId,
+      ]);
+
+      // If application already exists, return a 409 error
+      if (checkApplicationResult.rows.length > 0) {
+        return res.status(409).json({
+          errors: [
+            {
+              code: 409,
+              name: "DuplicateApplication",
+              message: "You have already applied for this job.",
+            },
+          ],
+        });
+      }
+
+
+      // Insert a new application for the existing candidate
+      const applicationQuery = `
+        INSERT INTO job_applications (job_id, candidate_id, resume, application_details)
+        VALUES ($1, $2, $3, $4) RETURNING *;
+      `;
+      const applicationValues = [
+        jobId,
+        candidateId,
+        resumeBuffer,
+        "Application received from Indeed's testing tool for existing candidate",
+      ];
+      const applicationResult = await client.query(
+        applicationQuery,
+        applicationValues
+      );
+
+      return res.json({
+        result: applicationResult.rows[0],
+        meta: {},
+        errors: [],
+      });
+    }
+
+    // Insert a new candidate if they do not exist
+    const candidateQuery = `
+      INSERT INTO candidates (full_name, first_name, last_name, phone_number, email, verified)
+      VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;
+    `;
     const candidateValues = [
       fullName,
       firstName,
       lastName,
       phoneNumber,
       email,
-      resumeBuffer,
       verified,
     ];
-
     const candidateResult = await client.query(candidateQuery, candidateValues);
     const candidateId = candidateResult.rows[0].id;
 
-    // Define query for inserting data into job_applications table
+    // Insert a new application for the new candidate
     const applicationQuery = `
-      INSERT INTO job_applications (job_id, indeed_id, candidate_id, candidate_email, application_details)
-      VALUES ($1, $2, $3 , $4 , $5) RETURNING *;
+      INSERT INTO job_applications (job_id, candidate_id, resume, application_details)
+      VALUES ($1, $2, $3, $4) RETURNING *;
     `;
-
-    // Insert job application data
     const applicationValues = [
       jobId,
-      id,
       candidateId,
-      email,
+      resumeBuffer,
       "Application received from Indeed's testing tool",
     ];
-
     const applicationResult = await client.query(
       applicationQuery,
       applicationValues
     );
 
-    // Send the response
+    // Send the response with the application result
     return res.json({
       result: applicationResult.rows[0],
       meta: {},
       errors: [],
     });
   } catch (error) {
-
     console.error("Error receiving application:", error);
 
-    if (error.code === '413') {
-      // Handle payload too large error
+    // Handle payload too large error
+    if (error.code === "413") {
       return res.status(413).json({
         result: null,
         meta: {},
@@ -167,4 +220,4 @@ async function listApplications(req, res) {
     });
   }
 }
-module.exports = { receiveApplication ,listApplications};
+module.exports = { receiveApplication, listApplications };
