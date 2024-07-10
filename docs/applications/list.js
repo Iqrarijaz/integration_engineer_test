@@ -5,7 +5,7 @@
  *     tags:
  *       - Applications
  *     summary: List job applications
- *     description: Retrieve a paginated list of job applications.
+ *     description: Retrieve a paginated list of job applications along with candidate details.
  *     operationId: listApplications
  *     parameters:
  *       - name: page
@@ -24,7 +24,7 @@
  *           default: 10
  *     responses:
  *       '200':
- *         description: A paginated list of job applications.
+ *         description: A paginated list of job applications along with candidate details.
  *         content:
  *           application/json:
  *             schema:
@@ -57,6 +57,12 @@
  *                         type: string
  *                         format: date-time
  *                         example: "2024-07-09T12:34:56Z"
+ *                       full_name:
+ *                         type: string
+ *                         example: "Iqrar Ijaz"                     
+ *                       phone_number:
+ *                         type: string
+ *                         example: "+92 321 2358844"
  *                 pagination:
  *                   type: object
  *                   properties:
@@ -117,6 +123,5 @@
  *                         type: object
  *                         example: "Detailed error information here."
  */
-
 
 module.exports = {};

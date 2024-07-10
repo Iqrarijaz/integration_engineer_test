@@ -12,11 +12,7 @@ This repository contains an API for handling job postings and applications. The 
   - [Get Active Jobs](#get-jobs)
   - [Get Jobs in XML for Indeed](#get-jobsindeedxml)
   - [Receive Job Application](#post-apiapplications)
-- [Database Schema](#database-schema)
-- [Environment Variables](#environment-variables)
 - [Error Handling](#error-handling)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Overview
 

@@ -62,7 +62,6 @@ async function receiveApplication(req, res) {
         });
       }
 
-
       // Insert a new application for the existing candidate
       const applicationQuery = `
         INSERT INTO job_applications (job_id, candidate_id, resume, application_details)
@@ -172,10 +171,12 @@ async function listApplications(req, res) {
     // Calculate offset
     const offset = (pageNumber - 1) * limitNumber;
 
-    // Define the query to select applications with pagination
+    // Define the query to select applications with candidate details and pagination
     const query = `
-      SELECT * FROM job_applications 
-      ORDER BY created_at DESC 
+      SELECT ja.*, c.full_name, c.email, c.phone_number
+      FROM job_applications ja
+      JOIN candidates c ON ja.candidate_id = c.id
+      ORDER BY ja.created_at DESC
       LIMIT $1 OFFSET $2
     `;
 
@@ -206,6 +207,7 @@ async function listApplications(req, res) {
       errors: [],
     });
   } catch (error) {
+    console.error("Error retrieving applications:", error);
     res.status(500).json({
       result: null,
       meta: {},
@@ -220,4 +222,5 @@ async function listApplications(req, res) {
     });
   }
 }
+
 module.exports = { receiveApplication, listApplications };
